@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>A Letter to Mommy & Daddy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Special+Elite&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-1: #eaddd5;
+      --bg-2: #d2beb2; 
+      --paper: #f9f4ef;
+      --envelope: #8b3a3a;
+      --envelope-flap: #9c4646;
+      --text: #2c2421;
+      --shadow: rgba(54, 32, 32, 0.3);
+    }
+
+    body::before {
+      content: "";
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: url('https://www.transparenttextures.com/patterns/stardust.png');
+      opacity: 0.15; pointer-events: none; z-index: 1000;
+    }
+
+    body {
+      margin: 0; font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at center, var(--bg-1) 0%, var(--bg-2) 100%);
+      height: 100vh; overflow: hidden;
+      display: flex; justify-content: center; align-items: center;
+    }
+
+    /* ---------- Envelope ---------- */
+    .EnvelopeWrap {
+      position: fixed; z-index: 600; 
+      transition: transform 0.8s cubic-bezier(.22, 1, .36, 1), opacity 0.5s;
+    }
+    .Envelope {
+      width: 95vw; max-width: 480px; height: 300px; 
+      background: var(--envelope);
+      border-radius: 4px; position: relative; cursor: pointer;
+      box-shadow: 0 20px 60px var(--shadow);
+      transform-style: preserve-3d;
+    }
+    .Flap {
+      position: absolute; 
+      top: 0.8px; 
+      left: -0.5px; right: -0.5px; 
+      height: 145px; 
+      background: var(--envelope-flap);
+      clip-path: polygon(0 0, 50% 100%, 100% 0);
+      transform-origin: top; 
+      z-index: 20;
+      transition: transform 0.8s cubic-bezier(.4, 0, .2, 1);
+      transform: rotateX(0deg) scaleX(1.01); 
+    }
+    .EnvelopeOpen .Flap { 
+      transform: rotateX(-180deg) scaleX(1.0) translateY(1px); 
+    }
+
+    /* ---------- Letter System ---------- */
+    .LetterContainer {
+      position: fixed; 
+      width: 95vw; max-width: 650px; 
+      height: 85vh; z-index: 850;
+      opacity: 0; pointer-events: none;
+      transform: translateY(40px);
+      transition: opacity 0.8s, transform 0.8s cubic-bezier(.22, 1, .36, 1);
+    }
+    .LetterContainer.Active { opacity: 1; pointer-events: auto; transform: translateY(0); }
+
+    .Letter {
+      width: 100%; height: 100%;
+      background: var(--paper); border-radius: 4px;
+      box-shadow: 0 50px 100px rgba(0,0,0,0.2);
+      overflow-y: scroll; 
+      /* Native momentum scrolling for iOS/Android */
+      -webkit-overflow-scrolling: touch; 
+      scrollbar-width: none; -ms-overflow-style: none;
+      position: relative;
+    }
+    .Letter::-webkit-scrollbar { display: none; }
+
+    .ScrollContent { padding: 0 45px; box-sizing: border-box; }
+    .ScrollContent p { margin-bottom: 25px; } 
+
+    /* ---------- Magical Text Assembly ---------- */
+    .word {
+      display: inline-block;
+      margin-right: 0.3em;
+      font-family: 'Special Elite';
+      font-size: 35px; 
+      line-height: 1.8;
+      color: var(--text);
+      will-change: filter;
+      --focus: 0;
+    }
+
+    .char {
+      display: inline-block;
+      will-change: transform, opacity;
+      opacity: var(--focus);
+      transform: 
+        translate3d(calc(var(--rx) * var(--pull)), calc(var(--ry) * var(--pull)), 0) 
+        rotate(calc(var(--rz) * var(--pull)))
+        scale(calc(1 + (var(--pull) * 1.5)));
+    }
+
+    .signature {
+      font-family: 'Dancing Script', cursive !important;
+      font-size: 32px !important;
+      display: block; 
+      color: #5a2a2a;
+    }
+
+    /* ---------- Polaroid & Tape ---------- */
+    .Polaroid {
+      margin-top: 60px; width: 100%;
+      background: #fff; padding: 15px 15px 50px;
+      box-sizing: border-box;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      transform: rotate(-1.5deg);
+      border: 1px solid #ddd;
+      position: relative;
+      will-change: filter, transform, opacity;
+    }
+    .Polaroid::before {
+      content: ""; position: absolute; top: -15px; left: 50%;
+      width: 90px; height: 35px; background: rgba(220, 210, 190, 0.4);
+      transform: translateX(-50%) rotate(2deg);
+      backdrop-filter: blur(2px);
+      z-index: 10; /* FIX: Forces tape to stay above the photo */
+    }
+    .Polaroid img { width: 100%; height: auto; display: block; filter: sepia(0.15); position: relative; z-index: 1; }
+
+    .CloseBtn {
+      font-family: 'Special Elite', serif;
+      font-size: 35px;
+      background: transparent;
+      color: var(--envelope);
+      border: 1px solid var(--envelope);
+      padding: 12px 24px;
+      margin: 40px auto 20px;
+      display: block;
+      cursor: pointer;
+      opacity: 0.7;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      transition: all 0.3s ease;
+    }
+    .CloseBtn:hover { background: var(--envelope); color: var(--paper); opacity: 1; }
+
+  </style>
+</head>
+<body>
+
+  <div class="EnvelopeWrap" id="EnvWrap">
+    <div class="Envelope" onclick="openLetter()">
+      <div class="Flap" id="Flap"></div>
+    </div>
+  </div>
+
+  <div class="LetterContainer" id="LetterCont">
+    <div class="Letter" id="ScrollWindow">
+      <div class="ScrollContent" id="LetterContent">
+        <p class="animate">Dear Mommy and Daddy,</p>
+        <p class="animate">Happy Valentine's Day. I built this website so that even though you're both out of the country right now, you still remember that you have someone back home who loves you both more than he can really put into words.</p>
+        <p class="animate">Daddy, thank you for teaching me how to think before I act and to slow down. To be honest, I used to think your advice was just about keeping me out of trouble. But as I get closer to graduation and the "real world," I’m realizing you were actually teaching me how to take care of myself. You taught me that my choices have weight and that my decisions have consequences, and that being a man isn’t about being the loudest or the strongest person in the room—it’s about being the person people can actually rely and depend on. I’m trying every day to be that person.</p>
+        <p class="animate">And Mommy, you’ve always drilled it into me that success is a habit, not a destination. I see that now. Watching how you handle everything at home—even when you’re completely exhausted because baby won't let you sleep—has taught me more about "greatness" than any textbook or lesson at school ever could. You showed me that success isn't one big effort; but about being consistent every single day.</p>
+        <p class="animate">I hope you both know that I’m working hard to be a son you can be proud of. Thank you for everything you’ve given me and everything you’ve done to get me here. Happy Valentines!</p>
+        <p class="animate signature">With all my love,</p>
+        <p class="animate signature">— Joe</p>
+        <p class="animate signature" style="font-size: 20px !important;">P.S. There's a photo at the bottom</p>
+        <div class="Polaroid animate">
+          <img src="https://i.imgur.com/Z4wpd0a.png" alt="Memory">
+          <button class="CloseBtn" onclick="closeLetter()">Fold Letter</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const CONFIG = {
+      focusRamp: 0.5,       
+      falloffSteepness: 2,  
+      spreadDistance: 400,  
+      viewCenter: 0.4       
+    };
+
+    const scrollWin = document.getElementById('ScrollWindow');
+    const content = document.getElementById('LetterContent');
+    const envWrap = document.getElementById('EnvWrap');
+    const letterCont = document.getElementById('LetterCont');
+
+    let cachedPositions = []; 
+    let isScrolling = false; // Memory saver: only animate when moving
+
+    function alignFirstElement() {
+      const winHeight = scrollWin.clientHeight;
+      content.style.paddingTop = `${winHeight * CONFIG.viewCenter}px`;
+      content.style.paddingBottom = `${winHeight * 0.5}px`;
+    }
+
+    function prepareWords() {
+      document.querySelectorAll('.animate').forEach(p => {
+        if (p.classList.contains('Polaroid')) return;
+        const words = p.innerText.split(' ');
+        p.innerHTML = '';
+        words.forEach(w => {
+          if(!w) return;
+          const wordSpan = document.createElement('span');
+          wordSpan.className = 'word';
+          w.split('').forEach(char => {
+            const charSpan = document.createElement('span');
+            charSpan.className = 'char';
+            charSpan.innerText = char;
+            charSpan.style.setProperty('--rx', `${(Math.random() - 0.5) * CONFIG.spreadDistance}px`);
+            charSpan.style.setProperty('--ry', `${(Math.random() - 0.5) * CONFIG.spreadDistance}px`);
+            charSpan.style.setProperty('--rz', `${(Math.random() - 0.5) * 180}deg`);
+            wordSpan.appendChild(charSpan);
+          });
+          p.appendChild(wordSpan);
+          p.appendChild(document.createTextNode(' '));
+        });
+      });
+    }
+
+    function cacheWordPositions() {
+      cachedPositions = [];
+      const containerRect = scrollWin.getBoundingClientRect();
+      
+      document.querySelectorAll('.word, .Polaroid').forEach(el => {
+        const rect = el.getBoundingClientRect();
+        const absoluteCenterY = (rect.top - containerRect.top) + scrollWin.scrollTop + (rect.height / 2);
+        cachedPositions.push({ el: el, y: absoluteCenterY, lastFocus: null });
+      });
+      
+      updateMagic(); // Run once immediately to set initial state
+    }
+
+    // Native Scroll Listener: Only fires frames exactly when you scroll
+    scrollWin.addEventListener('scroll', () => { 
+      if (!isScrolling) {
+        window.requestAnimationFrame(updateMagic);
+      }
+      isScrolling = true;
+    });
+
+    function updateMagic() {
+      const containerRect = scrollWin.getBoundingClientRect();
+      const winHeight = scrollWin.clientHeight;
+      const scrollTop = scrollWin.scrollTop;
+      
+      const midPointViewport = containerRect.top + (winHeight * CONFIG.viewCenter);
+      const rampDistance = winHeight * CONFIG.focusRamp;
+
+      cachedPositions.forEach(item => {
+        // Pure native positioning without the Javascript fight
+        const visualViewportY = (item.y - scrollTop) + containerRect.top;
+        const relativeDist = (visualViewportY - midPointViewport) / rampDistance;
+        
+        let focus;
+        if (relativeDist < 0) focus = 1; 
+        else if (relativeDist > 1) focus = 0; 
+        else focus = Math.max(0, 1 - Math.pow(relativeDist, CONFIG.falloffSteepness));
+
+        // Round down heavily. This stops the phone from trying to calculate tiny micro-changes
+        focus = Number(focus.toFixed(2));
+
+        if (item.lastFocus === focus) return; 
+        item.lastFocus = focus;
+
+        if (item.el.classList.contains('Polaroid')) {
+          item.el.style.opacity = focus;
+          if (focus === 1 || focus === 0) item.el.style.filter = 'none';
+          else item.el.style.filter = `blur(${(1-focus)*10}px)`;
+          item.el.style.transform = `rotate(-1.5deg) translate3d(0, ${(1-focus)*40}px, 0)`;
+        } else {
+          const pull = Number(Math.pow(1 - focus, 2).toFixed(2));
+          
+          if (focus === 1 || focus === 0) {
+            item.el.style.filter = 'none';
+          } else {
+            item.el.style.filter = `blur(${(1 - focus) * 8}px)`;
+          }
+
+          item.el.style.setProperty('--focus', focus);
+          item.el.style.setProperty('--pull', pull);
+        }
+      });
+      
+      isScrolling = false; // Opens the gate for the next natural scroll frame
+    }
+
+    function openLetter() {
+      scrollWin.scrollTop = 0;
+      alignFirstElement();
+      document.querySelector('.Envelope').classList.add('EnvelopeOpen');
+      
+      setTimeout(() => {
+        envWrap.style.opacity = '0';
+        envWrap.style.pointerEvents = 'none';
+        letterCont.classList.add('Active');
+        
+        setTimeout(cacheWordPositions, 100); 
+      }, 750);
+    }
+
+    function closeLetter() {
+      letterCont.classList.remove('Active');
+      setTimeout(() => {
+        envWrap.style.opacity = '1';
+        envWrap.style.pointerEvents = 'auto';
+        setTimeout(() => {
+          document.querySelector('.Envelope').classList.remove('EnvelopeOpen');
+        }, 200);
+      }, 600);
+    }
+
+    window.addEventListener('resize', () => {
+      alignFirstElement();
+      if (letterCont.classList.contains('Active')) {
+        cacheWordPositions();
+      }
+    });
+
+    prepareWords();
+  </script>
+</body>
+</html>
